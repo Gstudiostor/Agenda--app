@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<title>Agenda Pro</title>
+
+<style>
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600&display=swap");
+@import url("https://fonts.googleapis.com/icon?family=Material+Icons");
+:root{
+  --bg:#F6F7FB; --surface:#FFFFFF; --primary:#3A36DB; --secondary:#6C63FF;
+  --success:#22C55E; --warning:#F59E0B; --danger:#EF4444;
+  --text:#0B1220; --text-secondary:#6B7280; --border:#E6E8F0;
+  --shadow:0 10px 30px rgba(16,24,40,.08); --radius:22px;
+}
+[data-theme="dark"]{
+  --bg:#0F1117; --surface:#1A1D29; --primary:#7C7AFF; --secondary:#7C7AFF;
+  --text:#F3F4F6; --text-secondary:#9CA3AF; --border:#2A2F3F;
+  --shadow:0 10px 30px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto;background:var(--bg);color:var(--text);overflow-x:hidden}
+#app{max-width:440px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative;background:var(--bg)}
+header{position:sticky;top:0;z-index:30;background:var(--bg);padding:16px 18px 12px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:saturate(180%) blur(8px)}
+.header-title{font-family:Poppins;font-weight:600;font-size:22px;letter-spacing:.2px}
+.icon-btn{width:40px;height:40px;display:grid;place-items:center;border-radius:14px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow);cursor:pointer;transition:.2s}
+.icon-btn:active{transform:scale(.96)}
+main{flex:1;padding:4px 16px 100px}
+.page{display:none;animation:fade .2s ease}
+.page.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);margin-bottom:14px}
+.section-title{font-weight:600;font-size:16px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.muted{color:var(--text-secondary);font-size:13px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:500;background:rgba(58,54,219,.08);color:var(--primary);border:1px solid rgba(58,54,219,.15)}
+.quick-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.quick-btn{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:6px;font-weight:500;box-shadow:var(--shadow);cursor:pointer;transition:.2s}
+.quick-btn .material-icons{color:var(--primary)}
+.quick-btn:active{transform:translateY(1px)}
+.list{display:flex;flex-direction:column;gap:10px}
+.item{display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid var(--border);background:var(--surface);border-radius:18px;box-shadow:var(--shadow);cursor:pointer;transition:.2s}
+.item:active{transform:scale(.99)}
+.item .left{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:rgba(58,54,219,.1);color:var(--primary);flex-shrink:0}
+.item .title{font-weight:500;line-height:1.25}
+.item .sub{font-size:12px;color:var(--text-secondary);margin-top:2px}
+.priority-baixa{border-left:4px solid #9CA3AF}
+.priority-media{border-left:4px solid #3A36DB}
+.priority-alta{border-left:4px solid #F59E0B}
+.priority-urgente{border-left:4px solid #EF4444}
+[data-theme="dark"] .priority-media{border-left-color:#7C7AFF}
+.tabs{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:4px;margin-bottom:12px;box-shadow:var(--shadow)}
+.tab-btn{flex:1;padding:10px;border-radius:12px;border:none;background:transparent;font-weight:500;color:var(--text-secondary);cursor:pointer;transition:.2s}
+.tab-btn.active{background:rgba(58,54,219,.1);color:var(--primary)}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:440px;background:var(--surface);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:10px 8px 18px;z-index:40;border-radius:24px 24px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.06)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px;border-radius:14px;color:var(--text-secondary);cursor:pointer;transition:.2s}
+.nav-item.active{color:var(--primary);background:rgba(58,54,219,.08)}
+.nav-item .material-icons{font-size:24px}
+.nav-label{font-size:11px;font-weight:500}
+.fab{position:fixed;right:calc(50% - 200px);bottom:96px;width:56px;height:56px;border-radius:18px;background:linear-gradient(135deg,var(--primary),var(--secondary));color:white;display:grid;place-items:center;border:none;box-shadow:0 12px 24px rgba(58,54,219,.35);cursor:pointer;z-index:35}
+@media(max-width:440px){.fab{right:20px}}
+#drawer{position:fixed;top:0;right:0;height:100%;width:320px;max-width:86vw;background:var(--surface);transform:translateX(105%);transition:.25s ease;z-index:60;box-shadow:-20px 0 40px rgba(0,0,0,.2);border-radius:24px 0 0 24px;display:flex;flex-direction:column;border-left:1px solid var(--border)}
+#drawer.open{transform:none}
+#drawer header{padding:20px;border-bottom:1px solid var(--border);background:transparent}
+.drawer-list{padding:12px;overflow:auto}
+.drawer-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;cursor:pointer;transition:.2s}
+.drawer-item:hover{background:rgba(58,54,219,.06)}
+.drawer-item .material-icons{color:var(--text-secondary)}
+#backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:.2s;z-index:50;backdrop-filter:blur(2px)}
+#backdrop.show{opacity:1;pointer-events:auto}
+.modal{position:fixed;inset:0;display:flex;align-items:flex-end;justify-content:center;z-index:70;pointer-events:none}
+.modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.5);opacity:0;transition:.2s}
+.modal-content{position:relative;width:100%;max-width:440px;background:var(--surface);border-radius:28px 28px 0 0;transform:translateY(100%);transition:.25s ease;max-height:92vh;overflow:auto;padding:20px 18px 24px;border:1px solid var(--border);box-shadow:0 -20px 40px rgba(0,0,0,.25)}
+.modal.open{pointer-events:auto}
+.modal.open .modal-backdrop{opacity:1}
+.modal.open .modal-content{transform:none}
+.modal-handle{width:40px;height:5px;background:var(--border);border-radius:99px;margin:0 auto 12px}
+.form{display:flex;flex-direction:column;gap:12px}
+.input,select,textarea{width:100%;padding:12px 14px;border-radius:14px;border:1px solid var(--border);background:var(--bg);color:var(--text);font:inherit;outline:none;transition:.2s}
+.input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(58,54,219,.15)}
+textarea{min-height:90px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{padding:12px 16px;border-radius:14px;border:none;font-weight:600;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn-primary{background:var(--primary);color:white;box-shadow:0 8px 20px rgba(58,54,219,.3)}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-danger{background:var(--danger);color:white}
+.colors{display:flex;gap:10px}
+.color-dot{width:28px;height:28px;border-radius:50%;border:2px solid transparent;cursor:pointer}
+.color-dot.active{border-color:var(--text);box-shadow:0 0 0 2px var(--surface) inset}
+.switch{position:relative;width:46px;height:28px;background:var(--border);border-radius:99px;cursor:pointer;transition:.2s}
+.switch.on{background:rgba(58,54,219,.3)}
+.switch i{position:absolute;top:3px;left:3px;width:22px;height:22px;background:white;border-radius:50%;transition:.2s;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.switch.on i{left:21px;background:var(--primary)}
+.filter-chip{padding:8px 12px;border-radius:999px;border:1px solid var(--border);background:var(--surface);font-size:13px;font-weight:500;color:var(--text-secondary);cursor:pointer}
+.filter-chip.active{background:rgba(58,54,219,.1);color:var(--primary);border-color:rgba(58,54,219,.2)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.note-card{padding:14px;border-radius:18px;border:1px solid var(--border);background:var(--surface);box-shadow:var(--shadow);cursor:pointer;min-height:110px;display:flex;flex-direction:column}
+.note-title{font-weight:600;margin-bottom:6px}
+.note-preview{font-size:13px;color:var(--text-secondary);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-day{aspect-ratio:1;border:1px solid var(--border);border-radius:12px;background:var(--surface);display:flex;align-items:center;justify-content:center;position:relative;font-weight:500;cursor:pointer}
+.cal-day.today{outline:2px solid var(--primary);outline-offset:-2px}
+.cal-day.has::after{content:"";position:absolute;bottom:6px;width:5px;height:5px;border-radius:50%;background:var(--primary)}
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.week-col{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:8px;min-height:120px}
+.searchbar{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);margin-bottom:12px}
+.accordion{border:1px solid var(--border);border-radius:16px;overflow:hidden;background:var(--surface);margin-bottom:10px}
+.acc-head{padding:14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-weight:500}
+.acc-body{padding:0 14px 14px;display:none;color:var(--text-secondary);font-size:14px;line-height:1.5}
+.accordion.open .acc-body{display:block}
+#splash{position:fixed;inset:0;background:var(--bg);display:grid;place-items:center;z-index:100;transition:opacity .5s}
+#splash.hide{opacity:0;pointer-events:none}
+.splash-logo{width:84px;height:84px;background:linear-gradient(135deg,var(--primary),var(--secondary));border-radius:26px;display:grid;place-items:center;margin:0 auto 16px;box-shadow:0 14px 34px rgba(58,54,219,.35);animation:pop .8s ease}
+@keyframes pop{0%{transform:scale(.8);opacity:0}100%{transform:scale(1);opacity:1}}
+.empty{padding:30px;text-align:center;color:var(--text-secondary)}
+.empty .material-icons{font-size:40px;margin-bottom:8px;opacity:.6}
+::-webkit-scrollbar{display:none}
+</style>
+</head>
+<body>
+<div id="splash">
+  <div style="text-align:center">
+    <div class="splash-logo"><span class="material-icons" style="color:white;font-size:44px">event</span></div>
+    <h1 style="font-family:Poppins;font-weight:600;font-size:28px">Agenda Pro</h1>
+    <p class="muted" style="margin-top:4px">produtividade premium</p>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="header-title" id="headerTitle">Início</div>
+    <div style="display:flex;gap:8px">
+      <button class="icon-btn" onclick="navigate('pesquisa')"><span class="material-icons">search</span></button>
+      <button class="icon-btn" onclick="cycleTheme()"><span class="material-icons" id="themeIcon">dark_mode</span></button>
+    </div>
+  </header>
+
+  <main>
+    <!-- INÍCIO -->
+    <section id="page-inicio" class="page active">
+      <div class="card" style="background:linear-gradient(135deg,var(--primary),var(--secondary));color:white;border:none">
+        <p style="opacity:.9;font-size:14px" id="greeting">Bom dia</p>
+        <h2 style="font-family:Poppins;font-size:24px;margin-top:4px" id="userName">Bem-vindo</h2>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Hoje <span class="material-icons" style="color:var(--primary)">today</span></div>
+        <div id="todayEvents" class="list"></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="card">
+          <p class="muted">Tarefas pendentes</p>
+          <p style="font-size:32px;font-weight:600;margin:6px 0" id="pendingCount">0</p>
+          <div style="display:flex;align-items:center;gap:6px;color:var(--warning)"><span class="material-icons" style="font-size:18px">task_alt</span><span style="font-size:12px">Para hoje</span></div>
+        </div>
+        <div class="card">
+          <p class="muted">Concluídas</p>
+          <p style="font-size:32px;font-weight:600;margin:6px 0;color:var(--success)" id="doneCount">0</p>
+          <div style="display:flex;align-items:center;gap:6px;color:var(--success)"><span class="material-icons" style="font-size:18px">check_circle</span><span style="font-size:12px">Esta semana</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Produtividade semanal</div>
+        <canvas id="miniChart" height="80" style="width:100%"></canvas>
+      </div>
+
+      <div class="quick-grid">
+        <button class="quick-btn" onclick="openEventModal()"><span class="material-icons">add</span>Evento</button>
+        <button class="quick-btn" onclick="openTaskModal()"><span class="material-icons">add_task</span>Tarefa</button>
+        <button class="quick-btn" onclick="openNoteModal()"><span class="material-icons">note_add</span>Nota</button>
+      </div>
+    </section>
+
+    <!-- AGENDA -->
+    <section id="page-agenda" class="page">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="diario" onclick="setAgendaTab('diario')">Diário</button>
+        <button class="tab-btn" data-tab="semanal" onclick="setAgendaTab('semanal')">Semanal</button>
+        <button class="tab-btn" data-tab="mensal" onclick="setAgendaTab('mensal')">Mensal</button>
+      </div>
+      <div id="agenda-diario" class="agenda-view"></div>
+      <div id="agenda-semanal" class="agenda-view" style="display:none"></div>
+      <div id="agenda-mensal" class="agenda-view" style="display:none"></div>
+      <button class="fab" onclick="openEventModal()"><span class="material-icons">add</span></button>
+    </section>
+
+    <!-- TAREFAS -->
+    <section id="page-tarefas" class="page">
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <button class="filter-chip active" data-filter="todas" onclick="setTaskFilter('todas',this)">Todas</button>
+        <button class="filter-chip" data-filter="pendentes" onclick="setTaskFilter('pendentes',this)">Pendentes</button>
+        <button class="filter-chip" data-filter="concluidas" onclick="setTaskFilter('concluidas',this)">Concluídas</button>
+      </div>
+      <div id="tasksList" class="list"></div>
+      <button class="fab" onclick="openTaskModal()"><span class="material-icons">add</span></button>
+    </section>
+
+    <!-- NOTAS -->
+    <section id="page-notas" class="page">
+      <div id="notesGrid" class="grid-2"></div>
+      <button class="fab" onclick="openNoteModal()"><span class="material-icons">add</span></button>
+    </section>
+
+    <!-- PESQUISA -->
+    <section id="page-pesquisa" class="page">
+      <div class="searchbar"><span class="material-icons">search</span><input id="searchInput" class="input" style="border:none;background:transparent;padding:0" placeholder="Pesquisar eventos, tarefas e notas..." oninput="doSearch()"></div>
+      <div id="searchResults"></div>
+    </section>
+
+    <!-- FAVORITOS -->
+    <section id="page-favoritos" class="page"><div id="favList" class="list"></div></section>
+
+    <!-- HISTÓRICO -->
+    <section id="page-historico" class="page"><div id="histList"></div></section>
+
+    <!-- LIXEIRA -->
+    <section id="page-lixeira" class="page"><div id="trashList" class="list"></div></section>
+
+    <!-- ESTATÍSTICAS -->
+    <section id="page-estatisticas" class="page">
+      <div class="card"><div class="section-title">Eventos por categoria</div><canvas id="chartCat" height="180"></canvas></div>
+      <div class="card"><div class="section-title">Tarefas concluídas (semana)</div><canvas id="chartTasks" height="160"></canvas></div>
+      <div class="card"><div class="section-title">Horas produtivas</div><canvas id="chartHours" height="160"></canvas></div>
+    </section>
+
+    <!-- CATEGORIAS -->
+    <section id="page-categorias" class="page">
+      <div class="card">
+        <div class="form">
+          <input id="catName" class="input" placeholder="Nova categoria (ex: Finanças)">
+          <div class="colors" id="catColors"></div>
+          <button class="btn btn-primary" onclick="addCategory()"><span class="material-icons">add</span>Adicionar</button>
+        </div>
+      </div>
+      <div id="catList" class="list"></div>
+    </section>
+
+    <!-- LEMBRETES -->
+    <section id="page-lembretes" class="page"><div id="remindList" class="list"></div></section>
+
+    <!-- CONFIGURAÇÕES -->
+    <section id="page-configuracoes" class="page">
+      <div class="card">
+        <div class="section-title">Aparência</div>
+        <div style="display:flex;gap:8px">
+          <button class="filter-chip" onclick="setTheme('claro')">Claro</button>
+          <button class="filter-chip" onclick="setTheme('escuro')">Escuro</button>
+          <button class="filter-chip" onclick="setTheme('auto')">Auto</button>
+        </div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><div style="font-weight:500">Notificações</div><div class="muted">Lembretes no app</div></div>
+          <div class="switch" id="swNotif" onclick="toggleNotif()"><i></i></div>
+        </div>
+      <div class="card">
+        <div class="section-title">Início da semana</div>
+        <select id="weekStart" class="input" onchange="changeWeekStart()">
+          <option value="1">Segunda-feira</option>
+          <option value="0">Domingo</option>
+        </select>
+      </div>
+      <div class="card">
+        <div class="section-title">Dados</div>
+        <div style="display:grid;gap:8px">
+          <button class="btn btn-ghost" onclick="exportData()"><span class="material-icons">download</span>Exportar (.json)</button>
+          <label class="btn btn-ghost" style="cursor:pointer"><span class="material-icons">upload</span>Importar<input type="file" id="importFile" accept=".json" hidden onchange="importData(event)"></label>
+          <button class="btn btn-ghost" onclick="backupLocal()"><span class="material-icons">backup</span>Backup local</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PERFIL -->
+    <section id="page-perfil" class="page">
+      <div class="card" style="text-align:center">
+        <div id="avatar" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:grid;place-items:center;color:white;font-size:28px;font-weight:600;margin:0 auto 12px">U</div>
+        <input id="profileName" class="input" placeholder="Seu nome" style="text-align:center;font-weight:600">
+        <input id="profileEmail" class="input" placeholder="Email (opcional)" style="margin-top:8px;text-align:center">
+        <button class="btn btn-primary" style="margin-top:12px" onclick="saveProfile()">Salvar</button>
+      </div>
+    </section>
+
+    <!-- AJUDA -->
+    <section id="page-ajuda" class="page" id="faq">
+      <div class="accordion"><div class="acc-head" onclick="toggleAcc(this)">Como criar um evento?<span class="material-icons">expand_more</span></div><div class="acc-body">Toque em + Evento na tela inicial ou na Agenda. Preencha título, data e hora, escolha categoria e prioridade.</div></div>
+      <div class="accordion"><div class="acc-head" onclick="toggleAcc(this)">Os dados ficam salvos onde?<span class="material-icons">expand_more</span></div><div class="acc-body">Tudo é salvo localmente no seu navegador (localStorage). Use Exportar para backup.</div></div>
+      <div class="accordion"><div class="acc-head" onclick="toggleAcc(this)">Como funciona o tema escuro?<span class="material-icons">expand_more</span></div><div class="acc-body">Em Configurações > Aparência escolha Claro, Escuro ou Auto (segue o sistema).</div></div>
+      <div class="accordion"><div class="acc-head" onclick="toggleAcc(this)">Posso recuperar itens excluídos?<span class="material-icons">expand_more</span></div><div class="acc-body">Sim, acesse Lixeira e toque em Restaurar.</div></div>
+      <div class="accordion"><div class="acc-head" onclick="toggleAcc(this)">Como compartilhar um compromisso?<span class="material-icons">expand_more</span></div><div class="acc-body">Abra os detalhes do evento e toque em Compartilhar.</div></div>
+    </section>
+
+    <!-- CONTATO -->
+    <section id="page-contato" class="page">
+      <div class="card">
+        <div class="form">
+          <input id="cNome" class="input" placeholder="Nome">
+          <input id="cEmail" class="input" placeholder="Email" type="email">
+          <textarea id="cMsg" placeholder="Mensagem"></textarea>
+          <button class="btn btn-primary" onclick="sendContact()">Enviar</button>
+          <p class="muted" style="text-align:center">Formulário simulado - sem backend</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SOBRE -->
+    <section id="page-sobre" class="page">
+      <div class="card" style="text-align:center">
+        <div style="width:64px;height:64px;margin:0 auto 12px;border-radius:20px;background:linear-gradient(135deg,var(--primary),var(--secondary));display:grid;place-items:center"><span class="material-icons" style="color:white">event</span></div>
+        <h3 style="font-family:Poppins;font-size:20px">Agenda Pro</h3>
+        <p class="muted">Versão 1.0</p>
+        <p style="margin-top:12px;line-height:1.6">Aplicativo premium de agenda e produtividade, focado em simplicidade, velocidade e design elegante. Funciona 100% offline.</p>
+      </div>
+    </section>
+
+    <!-- POLÍTICA -->
+    <section id="page-politica" class="page">
+      <div class="card"><h3 style="margin-bottom:8px">Política de Privacidade</h3><p class="muted" style="line-height:1.6">Seus dados ficam armazenados apenas no seu dispositivo. Não coletamos informações pessoais. Você pode exportar ou apagar seus dados a qualquer momento em Configurações.</p></div>
+    </section>
+
+    <!-- TERMOS -->
+    <section id="page-termos" class="page">
+      <div class="card"><h3 style="margin-bottom:8px">Termos de Uso</h3><p class="muted" style="line-height:1.6">Agenda Pro é fornecido como protótipo demonstrativo. Use por sua conta e risco. Faça backups regulares dos seus dados.</p></div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <div class="nav-item active" data-page="inicio" onclick="navigate('inicio')"><span class="material-icons">home</span><span class="nav-label">Início</span></div>
+    <div class="nav-item" data-page="agenda" onclick="navigate('agenda')"><span class="material-icons">calendar_today</span><span class="nav-label">Agenda</span></div>
+    <div class="nav-item" data-page="tarefas" onclick="navigate('tarefas')"><span class="material-icons">task_alt</span><span class="nav-label">Tarefas</span></div>
+    <div class="nav-item" data-page="notas" onclick="navigate('notas')"><span class="material-icons">sticky_note_2</span><span class="nav-label">Notas</span></div>
+    <div class="nav-item" data-page="mais" onclick="openDrawer()"><span class="material-icons">menu</span><span class="nav-label">Mais</span></div>
+  </nav>
+</div>
+
+<!-- DRAWER -->
+<aside id="drawer">
+  <header style="display:flex;align-items:center;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--secondary));display:grid;place-items:center"><span class="material-icons" style="color:white;font-size:20px">event</span></div><b>Menu</b></div>
+    <button class="icon-btn" onclick="closeDrawer()"><span class="material-icons">close</span></button>
+  </header>
+  <div class="drawer-list">
+    <div class="drawer-item" onclick="navigate('pesquisa')"><span class="material-icons">search</span>Pesquisa</div>
+    <div class="drawer-item" onclick="navigate('favoritos')"><span class="material-icons">star</span>Favoritos</div>
+    <div class="drawer-item" onclick="navigate('historico')"><span class="material-icons">history</span>Histórico</div>
+    <div class="drawer-item" onclick="navigate('lixeira')"><span class="material-icons">delete</span>Lixeira</div>
+    <div class="drawer-item" onclick="navigate('estatisticas')"><span class="material-icons">insights</span>Estatísticas</div>
+    <div class="drawer-item" onclick="navigate('categorias')"><span class="material-icons">label</span>Categorias</div>
+    <div class="drawer-item" onclick="navigate('lembretes')"><span class="material-icons">notifications</span>Lembretes</div>
+    <div class="drawer-item" onclick="navigate('configuracoes')"><span class="material-icons">settings</span>Configurações</div>
+    <div class="drawer-item" onclick="navigate('perfil')"><span class="material-icons">person</span>Perfil</div>
+    <div class="drawer-item" onclick="navigate('ajuda')"><span class="material-icons">help</span>Ajuda / FAQ</div>
+    <div class="drawer-item" onclick="navigate('contato')"><span class="material-icons">mail</span>Contato</div>
+    <div class="drawer-item" onclick="navigate('sobre')"><span class="material-icons">info</span>Sobre</div>
+    <div class="drawer-item" onclick="navigate('politica')"><span class="material-icons">privacy_tip</span>Privacidade</div>
+    <div class="drawer-item" onclick="navigate('termos')"><span class="material-icons">description</span>Termos</div>
+  </div>
+</aside>
+<div id="backdrop" onclick="closeDrawer()"></div>
+
+<!-- MODAL EVENTO -->
+<div id="modal-event" class="modal">
+  <div class="modal-backdrop" onclick="closeEventModal()"></div>
+  <div class="modal-content">
+    <div class="modal-handle"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h3 id="eventModalTitle" style="font-family:Poppins">Novo compromisso</h3>
+      <button class="icon-btn" onclick="closeEventModal()"><span class="material-icons">close</span></button>
+    </div>
+    <div class="form">
+      <input id="eTitle" class="input" placeholder="Título*">
+      <textarea id="eDesc" placeholder="Descrição"></textarea>
+      <div class="row">
+        <input id="eDate" type="date" class="input">
+        <select id="eCategory" class="input"></select>
+      </div>
+      <div class="row">
+        <input id="eStart" type="time" class="input">
+        <input id="eEnd" type="time" class="input">
+      </div>
+      <div class="row">
+        <select id="ePriority" class="input">
+          <option>Baixa</option><option selected>Média</option><option>Alta</option><option>Urgente</option>
+        </select>
+        <select id="eReminder" class="input">
+          <option value="nenhum">Sem lembrete</option><option>15min</option><option>1h</option><option>1 dia</option>
+        </select>
+      </div>
+      <div class="row">
+        <select id="eRepeat" class="input"><option>nunca</option><option>diário</option><option>semanal</option><option>mensal</option></select>
+        <div style="display:flex;align-items:center;gap:8px;padding:0 8px"><span class="material-icons">palette</span><div class="colors" id="eColors"></div></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="eFav"><span class="material-icons">star</span>Favoritar</label>
+        <button class="btn btn-primary" onclick="saveEvent()"><span class="material-icons">check</span>Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOTA -->
+<div id="modal-note" class="modal">
+  <div class="modal-backdrop" onclick="closeNoteModal()"></div>
+  <div class="modal-content">
+    <div class="modal-handle"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h3 style="font-family:Poppins">Nota rápida</h3>
+      <button class="icon-btn" onclick="closeNoteModal()"><span class="material-icons">close</span></button>
+    </div>
+    <div class="form">
+      <input id="nTitle" class="input" placeholder="Título">
+      <textarea id="nContent" placeholder="Escreva sua nota..."></textarea>
+      <div style="display:flex;justify-content:space-between">
+        <label style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="nFav"><span class="material-icons">star</span>Favoritar</label>
+        <button class="btn btn-primary" onclick="saveNote()"><span class="material-icons">check</span>Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALHES -->
+<div id="modal-details" class="modal">
+  <div class="modal-backdrop" onclick="closeDetails()"></div>
+  <div class="modal-content">
+    <div class="modal-handle"></div>
+    <div id="detailsContent"></div>
+  </div>
+</div>
+
+<script>
+const $ = s=>document.querySelector(s); const $$ = s=>document.querySelectorAll(s);
+let data, editingId=null, currentDate = new Date().toISOString().split('T')[0];
+
+function initData(){
+  const stored = localStorage.getItem('agendaPro_data');
+  if(stored){ data = JSON.parse(stored); return; }
+  const today = new Date().toISOString().split('T')[0];
+  const tomorrow = new Date(Date.now()+86400000).toISOString().split('T')[0];
+  data = {
+    events:[
+      {id:'e1',title:'Reunião de Planejamento',desc:'Q1 metas e OKRs',date:today,start:'09:00',end:'10:30',category:'Trabalho',color:'#3A36DB',priority:'Alta',reminder:'15min',repeat:'nunca',favorite:true},
+      {id:'e2',title:'Academia',desc:'Treino superiores',date:today,start:'18:00',end:'19:00',category:'Saúde',color:'#F59E0B',priority:'Média',reminder:'1h',repeat:'semanal',favorite:false},
+      {id:'e3',title:'Apresentação Cliente',desc:'Proposta novo projeto',date:tomorrow,start:'14:00',end:'15:00',category:'Trabalho',color:'#3A36DB',priority:'Urgente',reminder:'1h',repeat:'nunca',favorite:true},
+      {id:'e4',title:'Estudar Inglês',desc:'Aula conversação',date:tomorrow,start:'19:30',end:'20:30',category:'Estudos',color:'#6C63FF',priority:'Média',reminder:'1 dia',repeat:'semanal',favorite:false},
+    ],
+    tasks:[
+      {id:'t1',title:'Revisar proposta comercial',priority:'Alta',completed:false,due:today,favorite:false},
+      {id:'t2',title:'Enviar relatório mensal',priority:'Urgente',completed:false,due:today,favorite:true},
+      {id:'t3',title:'Comprar suplementos',priority:'Baixa',completed:true,due:today,favorite:false},
+    ],
+    notes:[
+      {id:'n1',title:'Ideias App',content:'Implementar modo foco, pomodoro integrado e estatísticas avançadas.',date:today,favorite:true},
+      {id:'n2',title:'Livros para ler',content:'• Essencialismo\n• Hábitos Atômicos\n• Deep Work',date:today,favorite:false},
+    ],
+    categories:[
+      {id:'c1',name:'Trabalho',color:'#3A36DB'},
+      {id:'c2',name:'Pessoal',color:'#22C55E'},
+      {id:'c3',name:'Saúde',color:'#F59E0B'},
+      {id:'c4',name:'Estudos',color:'#6C63FF'},
+    ],
+    trash:[], settings:{theme:'auto',notifications:true,weekStart:1}, profile:{name:'Usuário',email:''}
+  };
+  save();
+}
+function save(){ localStorage.setItem('agendaPro_data', JSON.stringify(data)); }
+function uid(){ return Math.random().toString(36).slice(2,9); }
+
+function applyTheme(){
+  const t = data.settings.theme;
+  let theme = t==='auto' ? (matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light') : (t==='escuro'?'dark':'light');
+  document.documentElement.setAttribute('data-theme', theme);
+  $('#themeIcon').textContent = theme==='dark'?'light_mode':'dark_mode';
+}
+function cycleTheme(){ const order=['claro','escuro','auto']; const i=order.indexOf(data.settings.theme); setTheme(order[(i+1)%3]); }
+function setTheme(v){ data.settings.theme=v; save(); applyTheme(); }
+
+function navigate(page){ $$('.page').forEach(p=>p.classList.remove('active')); $('#page-'+page).classList.add('active'); const titles={inicio:'Início',agenda:'Agenda',tarefas:'Tarefas',notas:'Notas',pesquisa:'Pesquisa',favoritos:'Favoritos',historico:'Histórico',lixeira:'Lixeira',estatisticas:'Estatísticas',categorias:'Categorias e Etiquetas',lembretes:'Lembretes',configuracoes:'Configurações',perfil:'Perfil',ajuda:'Ajuda',contato:'Contato',sobre:'Sobre',politica:'Política de Privacidade',termos:'Termos de Uso'}; $('#headerTitle').textContent=titles[page]||'Agenda Pro'; $$('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page)); closeDrawer(); window.scrollTo(0,0);
+  if(page==='inicio') renderDashboard(); if(page==='agenda') renderAgenda(); if(page==='tarefas') renderTasks(); if(page==='notas') renderNotes(); if(page==='favoritos') renderFavoritos(); if(page==='historico') renderHistorico(); if(page==='lixeira') renderLixeira(); if(page==='estatisticas') renderEstatisticas(); if(page==='categorias') renderCategorias(); if(page==='lembretes') renderLembretes(); if(page==='perfil') loadProfile(); if(page==='configuracoes') loadSettings();
+}
+function openDrawer(){ $('#drawer').classList.add('open'); $('#backdrop').classList.add('show'); }
+function closeDrawer(){ $('#drawer').classList.remove('open'); $('#backdrop').classList.remove('show'); }
+
+function renderDashboard(){
+  const h=new Date().getHours(); $('#greeting').textContent = h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';
+  $('#userName').textContent = data.profile.name||'Bem-vindo';
+  const today=new Date().toISOString().split('T')[0];
+  const todays=data.events.filter(e=>e.date===today).sort((a,b)=>a.start.localeCompare(b.start)).slice(0,3);
+  $('#todayEvents').innerHTML = todays.length? todays.map(e=>`
+    <div class="item priority-${e.priority.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}" onclick="openDetails('${e.id}')">
+      <div class="left"><span class="material-icons" style="font-size:20px">schedule</span></div>
+      <div style="flex:1"><div class="title">${e.title}</div><div class="sub">${e.start} - ${e.end} • ${e.category}</div></div>
+      ${e.favorite?'<span class="material-icons" style="color:var(--warning);font-size:20px">star</span>':''}
+    </div>`).join('') : `<div class="empty"><span class="material-icons">event_available</span><div>Nenhum evento hoje</div></div>`;
+  $('#pendingCount').textContent = data.tasks.filter(t=>!t.completed).length;
+  $('#doneCount').textContent = data.tasks.filter(t=>t.completed).length;
+  drawMini();
+}
+function drawMini(){
+  const c=$('#miniChart'); const ctx=c.getContext('2d'); const w=c.width=c.offsetWidth*2; const h=c.height=160; ctx.clearRect(0,0,w,h);
+  const days=[...Array(7)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-6+i);return d.toISOString().split('T')[0]}); 
+  const counts=days.map(d=>data.tasks.filter(t=>t.completed&&t.due===d).length); const max=Math.max(1,...counts);
+  const barW=w/10; ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--primary');
+  counts.forEach((v,i)=>{ const x=20+i*(barW+12); const bh=(v/max)*(h-50); ctx.globalAlpha=.18; ctx.fillRect(x,h-30,v?bh+10:0,barW); ctx.globalAlpha=1; ctx.fillRect(x,h-20-bh,barW,bh); });
+}
+
+function setAgendaTab(tab){ $$('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab)); $('#agenda-diario').style.display=tab==='diario'?'block':'none'; $('#agenda-semanal').style.display=tab==='semanal'?'block':'none'; $('#agenda-mensal').style.display=tab==='mensal'?'block':'none'; renderAgenda(); }
+function renderAgenda(){ renderDiario(); renderSemanal(); renderMensal(); }
+function renderDiario(){
+  const today=currentDate; const list=data.events.filter(e=>e.date===today).sort((a,b)=>a.start.localeCompare(b.start));
+  $('#agenda-diario').innerHTML=`<div class="card"><div class="section-title">${new Date(today+'T00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})}</div><div class="list">${list.length?list.map(e=>`
+    <div class="item priority-${e.priority.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}" onclick="openDetails('${e.id}')">
+      <div class="left" style="background:${e.color}22;color:${e.color}"><span class="material-icons">event</span></div>
+      <div style="flex:1"><div class="title">${e.title}</div><div class="sub">${e.start}-${e.end} • ${e.category}</div></div>
+    </div>`).join(''):`<div class="empty"><span class="material-icons">free_cancellation</span><div>Sem compromissos</div></div>`}</div></div>`;
+}
+function renderSemanal(){
+  const start=new Date(); const day=(start.getDay()-data.settings.weekStart+7)%7; start.setDate(start.getDate()-day);
+  let html='<div class="card"><div class="week-grid">';
+  for(let i=0;i<7;i++){ const d=new Date(start); d.setDate(start.getDate()+i); const ds=d.toISOString().split('T')[0]; const ev=data.events.filter(e=>e.date===ds); html+=`<div class="week-col"><div style="font-weight:600;font-size:12px;margin-bottom:6px;text-align:center">${d.toLocaleDateString('pt-BR',{weekday:'short'})}<br><b>${d.getDate()}</b></div>${ev.map(e=>`<div style="font-size:11px;padding:4px 6px;border-radius:8px;background:${e.color}22;color:${e.color};margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.start} ${e.title}</div>`).join('')}</div>`; }
+  html+='</div></div>'; $('#agenda-semanal').innerHTML=html;
+}
+function renderMensal(){
+  const now=new Date(); const y=now.getFullYear(), m=now.getMonth(); const first=new Date(y,m,1); const last=new Date(y,m+1,0); const startDay=(first.getDay()-data.settings.weekStart+7)%7;
+  const week=data.settings.weekStart===1?['S','T','Q','Q','S','S','D']:['D','S','T','Q','Q','S','S'];
+  let html=`<div class="card"><div class="section-title">${first.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}</div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center;font-size:12px;color:var(--text-secondary);margin-bottom:8px">${week.map(w=>`<div>${w}</div>`).join('')}</div><div class="calendar-grid">`;
+  for(let i=0;i<startDay;i++) html+=`<div></div>`;
+  for(let d=1;d<=last.getDate();d++){ const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; const has=data.events.some(e=>e.date===ds); const today=ds===new Date().toISOString().split('T')[0]; html+=`<div class="cal-day ${today?'today':''} ${has?'has':''}" onclick="selectDate('${ds}')">${d}</div>`; }
+  html+=`</div><div id="dayEvents" style="margin-top:14px"></div></div>`; $('#agenda-mensal').innerHTML=html; selectDate(currentDate);
+}
+function selectDate(ds){ currentDate=ds; const ev=data.events.filter(e=>e.date===ds); $('#dayEvents').innerHTML = ev.length? `<div class="list">${ev.map(e=>`<div class="item" onclick="openDetails('${e.id}')"><div class="left" style="background:${e.color}22;color:${e.color}"><span class="material-icons">event</span></div><div style="flex:1"><div class="title">${e.title}</div><div class="sub">${e.start}-${e.end}</div></div></div>`).join('')}</div>` : `<div class="muted" style="text-align:center;padding:10px">Nenhum evento neste dia</div>`; }
+
+let taskFilter='todas';
+function setTaskFilter(f,el){ taskFilter=f; $$('.filter-chip').forEach(c=>c.classList.remove('active')); el.classList.add('active'); renderTasks(); }
+function renderTasks(){
+  let list=[...data.tasks]; if(taskFilter==='pendentes') list=list.filter(t=>!t.completed); if(taskFilter==='concluidas') list=list.filter(t=>t.completed);
+  $('#tasksList').innerHTML = list.length? list.map(t=>`
+    <div class="item priority-${t.priority.toLowerCase()}" style="align-items:center">
+      <input type="checkbox" ${t.completed?'checked':''} onchange="toggleTask('${t.id}')" style="width:20px;height:20px;accent-color:var(--primary)">
+      <div style="flex:1" onclick="editTask('${t.id}')"><div class="title" style="text-decoration:${t.completed?'line-through':''};opacity:${t.completed?.6:1}">${t.title}</div><div class="sub">Prioridade ${t.priority} • ${t.due}</div></div>
+      <span class="material-icons" onclick="favTask('${t.id}')" style="color:${t.favorite?'var(--warning)':'var(--text-secondary)'}">star</span>
+    </div>`).join('') : `<div class="empty"><span class="material-icons">task_alt</span><div>Nenhuma tarefa</div></div>`;
+}
+function toggleTask(id){ const t=data.tasks.find(x=>x.id===id); t.completed=!t.completed; save(); renderTasks(); renderDashboard(); }
+function favTask(id){ const t=data.tasks.find(x=>x.id===id); t.favorite=!t.favorite; save(); renderTasks(); }
+
+function renderNotes(){
+  $('#notesGrid').innerHTML = data.notes.map(n=>`
+    <div class="note-card" onclick="editNote('${n.id}')">
+      <div class="note-title">${n.title} ${n.favorite?'<span class="material-icons" style="font-size:16px;color:var(--warning);float:right">star</span>':''}</div>
+      <div class="note-preview">${n.content.replace(/\n/g,' ')}</div>
+      <div class="muted" style="margin-top:auto;font-size:11px">${new Date(n.date).toLocaleDateString('pt-BR')}</div>
+    </div>`).join('') || `<div class="empty"><span class="material-icons">sticky_note_2</span><div>Nenhuma nota</div></div>`;
+}
+
+function doSearch(){
+  const q=$('#searchInput').value.toLowerCase(); const ev=data.events.filter(e=>e.title.toLowerCase().includes(q)||e.desc.toLowerCase().includes(q)); const ts=data.tasks.filter(t=>t.title.toLowerCase().includes(q)); const ns=data.notes.filter(n=>n.title.toLowerCase().includes(q)||n.content.toLowerCase().includes(q));
+  $('#searchResults').innerHTML = `<div class="section-title">Eventos (${ev.length})</div><div class="list">${ev.map(e=>`<div class="item" onclick="openDetails('${e.id}')"><div class="title">${e.title}</div></div>`).join('')||'<div class="muted">—</div>'}</div>
+  <div class="section-title" style="margin-top:12px">Tarefas (${ts.length})</div><div class="list">${ts.map(t=>`<div class="item"><div class="title">${t.title}</div></div>`).join('')||'<div class="muted">—</div>'}</div>
+  <div class="section-title" style="margin-top:12px">Notas (${ns.length})</div><div class="list">${ns.map(n=>`<div class="item" onclick="editNote('${n.id}')"><div class="title">${n.title}</div></div>`).join('')||'<div class="muted">—</div>'}</div>`;
+}
+
+function renderFavoritos(){
+  const ev=data.events.filter(e=>e.favorite); const ns=data.notes.filter(n=>n.favorite);
+  $('#favList').innerHTML = [...ev.map(e=>`<div class="item" onclick="openDetails('${e.id}')"><div class="left"><span class="material-icons">star</span></div><div style="flex:1"><div class="title">${e.title}</div><div class="sub">Evento • ${e.date}</div></div></div>`), ...ns.map(n=>`<div class="item" onclick="editNote('${n.id}')"><div class="left"><span class="material-icons">sticky_note_2</span></div><div style="flex:1"><div class="title">${n.title}</div><div class="sub">Nota</div></div></div>`)].join('') || `<div class="empty"><span class="material-icons">star_border</span><div>Nada favoritado</div></div>`;
+}
+
+function renderHistorico(){
+  const past=data.events.filter(e=>e.date < new Date().toISOString().split('T')[0]).sort((a,b)=>b.date.localeCompare(a.date));
+  const groups={}; past.forEach(e=>{ const k=new Date(e.date).toLocaleDateString('pt-BR',{month:'long',year:'numeric'}); (groups[k]??=[]).push(e); });
+  $('#histList').innerHTML = Object.keys(groups).map(k=>`<div class="card"><div class="section-title">${k}</div><div class="list">${groups[k].map(e=>`<div class="item" onclick="openDetails('${e.id}')"><div class="title">${e.title}</div><div class="sub">${e.date} • ${e.start}</div></div>`).join('')}</div></div>`).join('') || `<div class="empty"><span class="material-icons">history</span><div>Sem histórico</div></div>`;
+}
+
+function renderLixeira(){
+  $('#trashList').innerHTML = data.trash.length? data.trash.map(it=>`
+    <div class="item"><div style="flex:1"><div class="title">${it.data.title}</div><div class="sub">${it.type} • excluído em ${new Date(it.deletedAt).toLocaleDateString('pt-BR')}</div></div><button class="btn btn-ghost" onclick="restore('${it.id}')">Restaurar</button><button class="btn btn-danger" onclick="purge('${it.id}')">Excluir</button></div>`).join('') : `<div class="empty"><span class="material-icons">delete_outline</span><div>Lixeira vazia</div></div>`;
+}
+function restore(id){ const i=data.trash.findIndex(x=>x.id===id); const it=data.trash.splice(i,1)[0]; if(it.type==='evento') data.events.push(it.data); if(it.type==='tarefa') data.tasks.push(it.data); if(it.type==='nota') data.notes.push(it.data); save(); renderLixeira(); }
+function purge(id){ data.trash=data.trash.filter(x=>x.id!==id); save(); renderLixeira(); }
+
+function renderEstatisticas(){
+  // categoria
+  const ctx1=$('#chartCat').getContext('2d'); const w1=ctx1.canvas.width=ctx1.canvas.offsetWidth*2; const h1=ctx1.canvas.height=180*2; ctx1.clearRect(0,0,w1,h1);
+  const cats=data.categories; const counts=cats.map(c=>data.events.filter(e=>e.category===c.name).length); const total=counts.reduce((a,b)=>a+b,0)||1; let ang=-Math.PI/2; counts.forEach((v,i)=>{ const slice=v/total*Math.PI*2; ctx1.beginPath(); ctx1.moveTo(w1/2,h1/2); ctx1.arc(w1/2,h1/2,Math.min(w1,h1)/3,ang,ang+slice); ctx1.fillStyle=cats[i].color; ctx1.fill(); ang+=slice; });
+  // tasks semana
+  const ctx2=$('#chartTasks').getContext('2d'); ctx2.canvas.width=ctx2.canvas.offsetWidth*2; ctx2.canvas.height=160*2; ctx2.clearRect(0,0,ctx2.canvas.width,ctx2.canvas.height); const days=[...Array(7)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-6+i);return d.toISOString().split('T')[0]}); const tc=days.map(d=>data.tasks.filter(t=>t.completed&&t.due===d).length); const max=Math.max(1,...tc); tc.forEach((v,i)=>{ const x=30+i*55; const h=v/max*200; ctx2.fillStyle='#3A36DB'; ctx2.fillRect(x,260-h,40,h); });
+  // horas
+  const ctx3=$('#chartHours').getContext('2d'); ctx3.canvas.width=ctx3.canvas.offsetWidth*2; ctx3.canvas.height=160*2; ctx3.clearRect(0,0,ctx3.canvas.width,ctx3.canvas.height); const hrs=days.map(d=>{ return data.events.filter(e=>e.date===d).reduce((s,e)=>{ const [sh,sm]=e.start.split(':').map(Number); const [eh,em]=e.end.split(':').map(Number); return s+((eh*60+em)-(sh*60+sm))/60; },0); }); ctx3.beginPath(); ctx3.strokeStyle='#22C55E'; ctx3.lineWidth=6; hrs.forEach((v,i)=>{ const x=30+i*55; const y=260-v*20; i?ctx3.lineTo(x,y):ctx3.moveTo(x,y); }); ctx3.stroke();
+}
+
+function renderCategorias(){
+  $('#catColors').innerHTML = ['#3A36DB','#22C55E','#F59E0B','#EF4444','#6C63FF'].map(c=>`<div class="color-dot" style="background:${c}" data-color="${c}" onclick="selectCatColor(this)"></div>`).join(''); selectCatColor($('#catColors').firstChild);
+  $('#catList').innerHTML = data.categories.map(c=>`<div class="item"><div class="left" style="background:${c.color}22;color:${c.color}"><span class="material-icons">label</span></div><div style="flex:1"><div class="title">${c.name}</div></div><button class="icon-btn" onclick="delCat('${c.id}')"><span class="material-icons">delete</span></button></div>`).join('');
+}
+let selCatColor='#3A36DB'; function selectCatColor(el){ $$('#catColors .color-dot').forEach(d=>d.classList.remove('active')); el.classList.add('active'); selCatColor=el.dataset.color; }
+function addCategory(){ const name=$('#catName').value.trim(); if(!name) return; data.categories.push({id:uid(),name,color:selCatColor}); $('#catName').value=''; save(); renderCategorias(); populateCategories(); }
+function delCat(id){ data.categories=data.categories.filter(c=>c.id!==id); save(); renderCategorias(); populateCategories(); }
+
+function renderLembretes(){
+  const rems=data.events.filter(e=>e.reminder!=='nenhum');
+  $('#remindList').innerHTML = rems.map(e=>`<div class="item"><div style="flex:1"><div class="title">${e.title}</div><div class="sub">Lembrete ${e.reminder} • ${e.date} ${e.start}</div></div><div class="switch ${e.reminder!=='nenhum'?'on':''}" onclick="toggleRem('${e.id}',this)"><i></i></div></div>`).join('') || `<div class="empty"><span class="material-icons">notifications_off</span><div>Sem lembretes ativos</div></div>`;
+}
+function toggleRem(id,el){ const e=data.events.find(x=>x.id===id); e.reminder = e.reminder==='nenhum'?'15min':'nenhum'; el.classList.toggle('on'); save(); }
+
+function loadSettings(){ $('#swNotif').classList.toggle('on',data.settings.notifications); $('#weekStart').value=data.settings.weekStart; }
+function toggleNotif(){ data.settings.notifications=!data.settings.notifications; $('#swNotif').classList.toggle('on'); save(); }
+function changeWeekStart(){ data.settings.weekStart=Number($('#weekStart').value); save(); renderAgenda(); }
+
+function exportData(){ const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='agenda-pro-backup.json'; a.click(); }
+function importData(e){ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ data=JSON.parse(r.result); save(); location.reload(); }catch{alert('Arquivo inválido')} }; r.readAsText(f); }
+function backupLocal(){ save(); alert('Backup salvo localmente.'); }
+
+function loadProfile(){ $('#profileName').value=data.profile.name; $('#profileEmail').value=data.profile.email; $('#avatar').textContent=(data.profile.name||'U').charAt(0).toUpperCase(); }
+function saveProfile(){ data.profile.name=$('#profileName').value.trim()||'Usuário'; data.profile.email=$('#profileEmail').value.trim(); save(); $('#avatar').textContent=data.profile.name.charAt(0).toUpperCase(); renderDashboard(); alert('Perfil salvo'); }
+
+function toggleAcc(h){ h.parentElement.classList.toggle('open'); h.querySelector('.material-icons').textContent = h.parentElement.classList.contains('open')?'expand_less':'expand_more'; }
+function sendContact(){ if(!$('#cNome').value||!$('#cEmail').value||!$('#cMsg').value){alert('Preencha todos os campos');return} alert('Mensagem enviada! (simulação)'); $('#cNome').value=$('#cEmail').value=$('#cMsg').value=''; }
+
+// MODALS
+function populateCategories(){ $('#eCategory').innerHTML = data.categories.map(c=>`<option>${c.name}</option>`).join('') + `<option value="__new">+ Nova categoria</option>`; }
+function openEventModal(id=null){ editingId=id; $('#modal-event').classList.add('open'); populateCategories(); $('#eColors').innerHTML=['#3A36DB','#6C63FF','#22C55E','#F59E0B','#EF4444'].map(c=>`<div class="color-dot" data-color="${c}" style="background:${c}" onclick="pickEventColor(this)"></div>`).join('');
+  if(id){ const e=data.events.find(x=>x.id===id); $('#eventModalTitle').textContent='Editar compromisso'; $('#eTitle').value=e.title; $('#eDesc').value=e.desc; $('#eDate').value=e.date; $('#eStart').value=e.start; $('#eEnd').value=e.end; $('#eCategory').value=e.category; $('#ePriority').value=e.priority; $('#eReminder').value=e.reminder; $('#eRepeat').value=e.repeat; $('#eFav').checked=e.favorite; [...$$('#eColors .color-dot')].find(d=>d.dataset.color===e.color)?.classList.add('active'); }
+  else{ $('#eventModalTitle').textContent='Novo compromisso'; ['eTitle','eDesc'].forEach(i=>$('#'+i).value=''); $('#eDate').value=new Date().toISOString().split('T')[0]; $('#eStart').value='09:00'; $('#eEnd').value='10:00'; $('#ePriority').value='Média'; $('#eReminder').value='15min'; $('#eRepeat').value='nunca'; $('#eFav').checked=false; $('#eColors .color-dot').firstChild?.classList.add('active'); }
+}
+function closeEventModal(){ $('#modal-event').classList.remove('open'); editingId=null; }
+let pickedColor='#3A36DB'; function pickEventColor(el){ $$('#eColors .color-dot').forEach(d=>d.classList.remove('active')); el.classList.add('active'); pickedColor=el.dataset.color; }
+function saveEvent(){ const title=$('#eTitle').value.trim(); if(!title){alert('Título obrigatório');return} const ev={ id:editingId||uid(), title, desc:$('#eDesc').value.trim(), date:$('#eDate').value, start:$('#eStart').value, end:$('#eEnd').value, category:$('#eCategory').value==='__new'?'Pessoal':$('#eCategory').value, color:pickedColor, priority:$('#ePriority').value, reminder:$('#eReminder').value, repeat:$('#eRepeat').value, favorite:$('#eFav').checked }; if(editingId){ const i=data.events.findIndex(x=>x.id===editingId); data.events[i]=ev; } else data.events.push(ev); save(); closeEventModal(); renderDashboard(); renderAgenda(); }
+
+function openTaskModal(editId=null){ const title=prompt(editId?'Editar tarefa:':'Nova tarefa:'); if(!title) return; if(editId){ const t=data.tasks.find(x=>x.id===editId); t.title=title; } else { data.tasks.push({id:uid(),title,priority:'Média',completed:false,due:new Date().toISOString().split('T')[0],favorite:false}); } save(); renderTasks(); renderDashboard(); }
+function editTask(id){ openTaskModal(id); }
+
+function openNoteModal(id=null){ editingId=id; $('#modal-note').classList.add('open'); if(id){ const n=data.notes.find(x=>x.id===id); $('#nTitle').value=n.title; $('#nContent').value=n.content; $('#nFav').checked=n.favorite; } else { $('#nTitle').value=''; $('#nContent').value=''; $('#nFav').checked=false; } }
+function closeNoteModal(){ $('#modal-note').classList.remove('open'); editingId=null; }
+function saveNote(){ const title=$('#nTitle').value.trim()||'Sem título'; const content=$('#nContent').value.trim(); const note={id:editingId||uid(),title,content,date:new Date().toISOString().split('T')[0],favorite:$('#nFav').checked}; if(editingId){ const i=data.notes.findIndex(x=>x.id===editingId); data.notes[i]=note; } else data.notes.push(note); save(); closeNoteModal(); renderNotes(); }
+function editNote(id){ openNoteModal(id); }
+
+function openDetails(id){ const e=data.events.find(x=>x.id===id); if(!e) return; $('#modal-details').classList.add('open'); $('#detailsContent').innerHTML=`
+  <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px"><h3 style="font-family:Poppins;font-size:20px">${e.title}</h3><button class="icon-btn" onclick="closeDetails()"><span class="material-icons">close</span></button></div>
+  <div class="chip" style="background:${e.color}22;color:${e.color};border-color:${e.color}44;margin-bottom:12px">${e.category}</div>
+  <div class="card" style="box-shadow:none"><p style="margin-bottom:8px">${e.desc||'Sem descrição'}</p><div class="muted">${new Date(e.date).toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})} • ${e.start} - ${e.end}</div><div class="muted">Prioridade: ${e.priority} • Lembrete: ${e.reminder}</div></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+    <button class="btn btn-ghost" onclick="openEventModal('${e.id}');closeDetails()"><span class="material-icons">edit</span>Editar</button>
+    <button class="btn btn-ghost" onclick="toggleFavEvent('${e.id}')"><span class="material-icons">star</span>Favoritar</button>
+    <button class="btn btn-ghost" onclick="shareEvent('${e.id}')"><span class="material-icons">share</span>Compartilhar</button>
+    <button class="btn btn-danger" onclick="deleteEvent('${e.id}')"><span class="material-icons">delete</span>Excluir</button>
+  </div>`; }
+function closeDetails(){ $('#modal-details').classList.remove('open'); }
+function toggleFavEvent(id){ const e=data.events.find(x=>x.id===id); e.favorite=!e.favorite; save(); closeDetails(); renderDashboard(); }
+function shareEvent(id){ const e=data.events.find(x=>x.id===id); const text=`${e.title} - ${e.date} ${e.start}`; if(navigator.share){navigator.share({title:e.title,text});} else {navigator.clipboard.writeText(text); alert('Copiado para área de transferência');} }
+function deleteEvent(id){ if(!confirm('Mover para lixeira?')) return; const i=data.events.findIndex(x=>x.id===id); const ev=data.events.splice(i,1)[0]; data.trash.push({id:uid(),type:'evento',data:ev,deletedAt:Date.now()}); save(); closeDetails(); renderDashboard(); renderAgenda(); }
+
+// INIT
+window.addEventListener('load',()=>{
+  initData(); applyTheme();
+  setTimeout(()=>$('#splash').classList.add('hide'),1800);
+  renderDashboard(); renderAgenda(); populateCategories();
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{ if(data.settings.theme==='auto') applyTheme(); });
+});
+</script>
+</body>
+</html>
